@@ -36,35 +36,31 @@ constexpr uint8_t KEY8_LED_PIN = 21;
 constexpr uint8_t KEY9_LED_PIN = 22;
 
 
-// Scratch LED Pin
+// Scratch LED Settings
 constexpr uint8_t SCRATCH_LED_PIN = 24;
+constexpr uint8_t NUM_PIXELS = 60;
+
 
 constexpr uint8_t DEFAULT_SCRATCH_LED_BRIGHTNESS = 50;
+constexpr uint8_t DEFAULT_LED_COLOR = 0;
+constexpr uint8_t DEFAULT_SCRATCH_LED_MODE = 10;
+
+constexpr uint16_t LIGHTS_TIME = 350;
 
 
-// Debounce time (ms)
+// Other
+
+constexpr uint8_t DEFAULT_KEYBOARD_LED_MODE = 2;
+
 constexpr uint8_t DEFAULT_DEBOUNCE_DELAY_MS = 30;
 
 constexpr uint8_t DEFAULT_ENCODER_SENS = 60;
 
-
-/*
-// Keyboard Keycodes
-constexpr uint8_t KEY1_CODE 1
-constexpr uint8_t KEY2_CODE 2
-constexpr uint8_t KEY3_CODE 3
-constexpr uint8_t KEY4_CODE 4
-constexpr uint8_t KEY5_CODE 5
-constexpr uint8_t KEY6_CODE 6
-constexpr uint8_t KEY7_CODE 7
-
-constexpr uint8_t START_CODE 8
-constexpr uint8_t SELECT_CODE 9
-*/
-
+constexpr int32_t LONG_PRESS_DURATION = 3000; 
 
 
 // Do not modify below this line
+// 以下のコードを変更してはいけない
 constexpr uint8_t keys[9] = {
     KEY1_PIN,
     KEY2_PIN,
@@ -88,17 +84,3 @@ constexpr uint8_t keyLeds[9] = {
     KEY8_LED_PIN,
     KEY9_LED_PIN
 };
-
-/*
-keymaps[9] = {
-    KEY1_CODE,
-    KEY2_CODE,
-    KEY3_CODE,
-    KEY4_CODE,
-    KEY5_CODE,
-    KEY6_CODE,
-    KEY7_CODE,
-    START_CODE,
-    SELECT_CODE
-}
-    */

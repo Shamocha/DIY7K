@@ -7,12 +7,21 @@
 // #include <Adafruit_NeoPixel.h>
 #include "quadrature_encoder.pio.h"
 #include "config.h"
+#include "settings.h"
 
 
 namespace {
 
 	uint8_t DEBOUNCE_DELAY_MS = 30;
 	uint8_t ENCODER_SENS = 60;
+
+	uint32_t lastCheckTime = 0;
+	int32_t pressAccumulator = 0;
+	bool longPressTriggered = false;
+
+	bool firstLoop = true;
+	uint8_t lastAxisValue = 0;
+
 	
 	PIO g_pio_enc_instance = pio0; // PIOインスタンス
 	uint g_pio_enc_sm;            // ステートマシン番号
@@ -92,16 +101,35 @@ namespace MyGamepad {
 		// Encoder setup
 
 		if (!setupPioEncoder(ENCODER_PIN_A)) {
-			Serial.println("PIO Encoder Init Failed!");
-			while (true); // エラー停止
+			Serial.println("PIO Encoder Init Failed.");
+			while (true); 
 		}
 		
 		Serial.println("PIO Encoder Initialized.");
 
 
+		// 設定読み込み
+		if (MySettings::getIsEnabled()) {
+			if (MySettings::getIsMagicValid()) {
+				DEBOUNCE_DELAY_MS = MySettings::getDebounceTime();
+				ENCODER_SENS = MySettings::getScratchSens();
+			} else {
+				DEBOUNCE_DELAY_MS = DEFAULT_DEBOUNCE_DELAY_MS;
+				ENCODER_SENS = DEFAULT_ENCODER_SENS;
+			}
+		} else {
+			DEBOUNCE_DELAY_MS = DEFAULT_DEBOUNCE_DELAY_MS;
+			ENCODER_SENS = DEFAULT_ENCODER_SENS;
+		}
+
+
 	}
 
 	void gamepad_loop() {
+		uint8_t keyLedMode = MySettings::getKeyboardLedMode();
+		uint8_t DEBOUNCE_DELAY_MS = MySettings::getDebounceTime();
+		uint8_t ENCODER_SENS = MySettings::getScratchSens();
+
 		#ifdef TINYUSB_NEED_POLLING_TASK
 		// Manual call tud_task since it isn't called by Core's background
 		TinyUSBDevice.task();
@@ -113,10 +141,6 @@ namespace MyGamepad {
 		}
 
 		if (!usb_hid.ready()) return; // ?
-
-
-		// gp.buttons = 0;
-
 
 		
 		// ボタン処理
@@ -157,17 +181,66 @@ namespace MyGamepad {
 		int32_t scaled_count = encoder_count / ENCODER_SENS;
   		uint8_t axis_value = (uint8_t)(scaled_count & 0xFF);
   		gp.x = axis_value;
+		
+		uint8_t scratchLedMode = MySettings::getScratchLedMode();
+		if (scratchLedMode >= 40 && scratchLedMode <= 42 && !firstLoop) {
+
+			int8_t diff = (int8_t)(axis_value - lastAxisValue);
+			if (diff >= 1) {
+				rp2040.fifo.push(41);
+			} else if (diff <= -1) {
+				rp2040.fifo.push(42);
+			}
+			lastAxisValue = axis_value;
+
+		} else {
+			lastAxisValue = axis_value;
+			firstLoop = false;
+		}
+
 
 		
 
 		// レポートの送信
 		usb_hid.sendReport(0, &gp, sizeof(gp));
 
+		settings_check_buttonState();
+
 	}
 }
 
 
 namespace {
+
+	void settings_check_buttonState() {
+		uint32_t now = millis();
+		uint32_t elapsedTime = now - lastCheckTime;
+		lastCheckTime = now;
+
+		if (digitalRead(keys[7]) == LOW && digitalRead(keys[8]) == LOW && digitalRead(keys[0]) == LOW) {
+			pressAccumulator += elapsedTime;
+			if (pressAccumulator > LONG_PRESS_DURATION) {
+				pressAccumulator = LONG_PRESS_DURATION;
+			}
+		} else {
+			pressAccumulator -= elapsedTime;
+			if (pressAccumulator < 0) {
+			pressAccumulator = 0;
+			}
+		}
+
+		if (pressAccumulator >= LONG_PRESS_DURATION && !longPressTriggered) {
+			reset_gamepad_report();
+			MySettings::changeMode();
+			pressAccumulator = 0;
+			longPressTriggered = true;
+		}
+
+		if (pressAccumulator == 0) {
+			longPressTriggered = false;
+		}
+		
+	}
 	
 	void reset_gamepad_report() {
 		gp.x = 0;
