@@ -100,8 +100,8 @@ namespace MySettings {
             checkRelease = false;
 
             for (int i = 0; i < 9; i++) {
-                if (digitalRead(keys[i]) == HIGH) {
-                    checkRelease = true; // 一つでもHIGHだったらtrueにする
+                if (digitalRead(keys[i]) == LOW) {
+                    checkRelease = true; 
                 }
             }
 
@@ -271,7 +271,7 @@ namespace {
 
         // 鍵盤LEDモード変更 1鍵
         if (button_isPressed[0] && !lastKeyState[0]) { 
-            if (settingsValue.keyboardLedMode < 4) {
+            if (settingsValue.keyboardLedMode < 3) {
                 settingsValue.keyboardLedMode++;
             } else {
                 settingsValue.keyboardLedMode = 0;

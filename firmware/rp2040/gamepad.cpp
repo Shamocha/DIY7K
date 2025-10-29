@@ -105,6 +105,8 @@ namespace MyGamepad {
 			TinyUSBDevice.attach();
 		}
 
+		Serial.println("TinyUSB Initialized.");
+
 		// Encoder setup
 
 		if (!setupPioEncoder(ENCODER_PIN_A)) {
@@ -130,6 +132,7 @@ namespace MyGamepad {
 			ENCODER_SENS = DEFAULT_ENCODER_SENS;
 		}
 
+		Serial.println("All Gamepad Task Initialized.");
 
 	}
 
@@ -316,6 +319,10 @@ namespace {
 	}
 	
 	void reset_gamepad_report() {
+
+		TinyUSBDevice.task();
+		if (!usb_hid.ready()) return;
+		
 		gp.x = 0;
 		gp.y = 0;
 		gp.z = 0;
@@ -325,6 +332,12 @@ namespace {
 		gp.hat = 0;
 		gp.buttons = 0;
 		usb_hid.sendReport(0, &gp, sizeof(gp));
+
+
+
+		for (int i = 0; i < 9; i++) {
+			digitalWrite(keyLeds[i], LOW);
+		}
 	}
 
 	bool setupPioEncoder(uint pin_a) {

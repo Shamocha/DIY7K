@@ -175,7 +175,8 @@ namespace MyScratchLed {
 		} else {
 
 			if (SCRATCH_LED_MODE == 10) {
-				myRainbowCircle();
+				// myRainbowCircle();
+				strip.fill(colorArray[SCRATCH_LED_COLOR], 0, 2);
 			}
 
 			if (SCRATCH_LED_MODE == 20) {

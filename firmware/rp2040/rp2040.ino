@@ -27,7 +27,7 @@ void setup() {
         }
     }
 
-    
+    MySettings::to_core1_led_setup();
 
 }
 
@@ -53,6 +53,9 @@ void setup1() {
     MyScratchLed::led_setup();
 
     rp2040.fifo.push(600); // ready
+
+    delay(100);
+    
 }
 
 void loop1() {

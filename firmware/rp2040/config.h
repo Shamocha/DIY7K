@@ -16,30 +16,30 @@ constexpr uint8_t KEY5_PIN = 6;
 constexpr uint8_t KEY6_PIN = 7;
 constexpr uint8_t KEY7_PIN = 8;
 
-constexpr uint8_t START_PIN = 9;
-constexpr uint8_t SELECT_PIN = 10;
+constexpr uint8_t START_PIN = 10;
+constexpr uint8_t SELECT_PIN = 11;
 
 
 // Scratch Encoder Pins
-constexpr uint8_t ENCODER_PIN_A = 11; // B相は A+1
+constexpr uint8_t ENCODER_PIN_A = 12; // B相は A+1
 
 
 // Keyboard LED Pins
-constexpr uint8_t KEY1_LED_PIN = 14;
-constexpr uint8_t KEY2_LED_PIN = 15;
-constexpr uint8_t KEY3_LED_PIN = 16;
-constexpr uint8_t KEY4_LED_PIN = 17;
-constexpr uint8_t KEY5_LED_PIN = 18;
-constexpr uint8_t KEY6_LED_PIN = 19;
-constexpr uint8_t KEY7_LED_PIN = 20;
-constexpr uint8_t KEY8_LED_PIN = 21;
-constexpr uint8_t KEY9_LED_PIN = 22;
+constexpr uint8_t KEY1_LED_PIN = 16;
+constexpr uint8_t KEY2_LED_PIN = 17;
+constexpr uint8_t KEY3_LED_PIN = 18;
+constexpr uint8_t KEY4_LED_PIN = 19;
+constexpr uint8_t KEY5_LED_PIN = 20;
+constexpr uint8_t KEY6_LED_PIN = 21;
+constexpr uint8_t KEY7_LED_PIN = 22;
+constexpr uint8_t KEY8_LED_PIN = 14;
+constexpr uint8_t KEY9_LED_PIN = 15;
 
 constexpr uint8_t LED_MOVE_INTERVAL = 100;
 
 
 // Scratch LED Settings
-constexpr uint8_t SCRATCH_LED_PIN = 24;
+constexpr uint8_t SCRATCH_LED_PIN = 27;
 constexpr uint8_t NUM_PIXELS = 60; // 変えても多分意味ない　ところどころ数値を直接書いてる
 
 
