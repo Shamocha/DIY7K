@@ -35,13 +35,77 @@ namespace {
 	uint8_t SCRATCH_LED_MODE = DEFAULT_SCRATCH_LED_MODE;
 	uint8_t SCRATCH_LED_COLOR = DEFAULT_LED_COLOR;
 	uint8_t SCRATCH_LED_PIXELS = 0;
-	uint8_t lightDuration = 500
+	uint16_t PixelsLightDuration = 500;
 	int pixels_timer = 0;
+
+	bool data_received = false;
+
+	bool left_on = false;
+	bool right_on = false;
+
+	uint32_t left_timer = 0;
+	uint32_t right_timer = 0;
 
 	struct RawColorData {
 		uint8_t red;
 		uint8_t green;
 		uint8_t blue;
+	};
+
+	uint32_t red = strip.Color(255, 0, 0);
+	uint32_t green = strip.Color(0, 255, 0);
+	uint32_t blue = strip.Color(0, 0, 255);
+	uint32_t cyan = strip.Color(0, 255, 255);
+	uint32_t purple = strip.Color(255, 0, 255);
+	uint32_t yellow = strip.Color(255, 255, 0);
+	uint32_t white = strip.Color(255, 255, 255);
+
+	uint32_t pink = strip.Color(255, 105, 180);  
+	uint32_t salmon = strip.Color(250, 128, 114); 
+	uint32_t orange = strip.Color(255, 165, 0); 
+	uint32_t gold = strip.Color(255, 215, 0);  
+	uint32_t brown = strip.Color(165, 42, 42);    
+
+	uint32_t teal = strip.Color(0, 128, 128);     
+	uint32_t lime = strip.Color(191, 255, 0);     
+	uint32_t indigo = strip.Color(75, 0, 130);     
+	uint32_t violet = strip.Color(238, 130, 238);  
+	uint32_t navy = strip.Color(0, 0, 128);      
+
+	uint32_t silver = strip.Color(192, 192, 192);  
+	uint32_t gray = strip.Color(128, 128, 128);   
+
+	uint32_t off = strip.Color(0, 0, 0);
+
+	uint32_t colorArray[20] = {
+		red, green, blue, cyan, purple,
+		yellow, white, pink, salmon, orange, gold,
+		brown, teal, lime, indigo, violet,
+		navy, silver, gray,
+		off
+	};
+		
+	RawColorData allColors[20] = {
+		{255, 0, 0},    // Red
+		{0, 255, 0},    // Green
+		{0, 0, 255},    // Blue
+		{0, 255, 255},  // Cyan
+		{255, 0, 255},  // Purple
+		{255, 255, 0},  // Yellow
+		{255, 255, 255},// White
+		{255, 105, 180},// Pink
+		{250, 128, 114},// Salmon
+		{255, 165, 0},  // Orange
+		{255, 215, 0},  // Gold
+		{165, 42, 42},  // Brown
+		{0, 128, 128},  // Teal
+		{191, 255, 0},  // Lime
+		{75, 0, 130},   // Indigo
+		{238, 130, 238},// Violet
+		{0, 0, 128},    // Navy
+		{192, 192, 192},// Silver
+		{128, 128, 128},// Gray
+		{0, 0, 0}       // Off
 	};
 
 
@@ -64,73 +128,12 @@ namespace MyScratchLed {
 		strip.setBrightness(SCRATCH_LED_BRIGHTNESS);
 		strip.show(); // Initialize all pixels to 'off'
 
-		uint32_t red = strip.Color(255, 0, 0);
-		uint32_t green = strip.Color(0, 255, 0);
-		uint32_t blue = strip.Color(0, 0, 255);
-		uint32_t cyan = strip.Color(0, 255, 255);
-		uint32_t purple = strip.Color(255, 0, 255);
-		uint32_t yellow = strip.Color(255, 255, 0);
-		uint32_t white = strip.Color(255, 255, 255);
-
-		uint32_t pink = strip.Color(255, 105, 180);  
-		uint32_t salmon = strip.Color(250, 128, 114); 
-		uint32_t orange = strip.Color(255, 165, 0); 
-		uint32_t gold = strip.Color(255, 215, 0);  
-		uint32_t brown = strip.Color(165, 42, 42);    
-
-		uint32_t teal = strip.Color(0, 128, 128);     
-		uint32_t lime = strip.Color(191, 255, 0);     
-		uint32_t indigo = strip.Color(75, 0, 130);     
-		uint32_t violet = strip.Color(238, 130, 238);  
-		uint32_t navy = strip.Color(0, 0, 128);      
-
-		uint32_t silver = strip.Color(192, 192, 192);  
-		uint32_t gray = strip.Color(128, 128, 128);   
-
-		uint32_t off = strip.Color(0, 0, 0);
-
-		uint32_t colorArray[20] = {
-			red, green, blue, cyan, purple,
-			yellow, white, pink, salmon, orange, gold,
-			brown, teal, lime, indigo, violet,
-			navy, silver, gray,
-			off
-		};
-		
-		RawColorData allColors[20] = {
-			{255, 0, 0},    // Red
-			{0, 255, 0},    // Green
-			{0, 0, 255},    // Blue
-			{0, 255, 255},  // Cyan
-			{255, 0, 255},  // Purple
-			{255, 255, 0},  // Yellow
-			{255, 255, 255},// White
-			{255, 105, 180},// Pink
-			{250, 128, 114},// Salmon
-			{255, 165, 0},  // Orange
-			{255, 215, 0},  // Gold
-			{165, 42, 42},  // Brown
-			{0, 128, 128},  // Teal
-			{191, 255, 0},  // Lime
-			{75, 0, 130},   // Indigo
-			{238, 130, 238},// Violet
-			{0, 0, 128},    // Navy
-			{192, 192, 192},// Silver
-			{128, 128, 128},// Gray
-			{0, 0, 0}       // Off
-		};
-
-		bool left_on = false;
-		bool right_on = false;
-		uint8_t left_timer = 0;
-		uint8_t right_timer = 0;
-
 	}
 
 	void led_loop() {
 
 		uint32_t latest_data = 0;
-		bool data_received = false;
+		data_received = false;
 
 		while (rp2040.fifo.available()) {
 			latest_data = rp2040.fifo.pop();
@@ -165,7 +168,7 @@ namespace MyScratchLed {
 		}
 
 		uint32_t currTime = millis();
-		if (currTime - pixels_timer < lightDuration) {
+		if (currTime - pixels_timer < PixelsLightDuration) {
 			strip.clear();
 			strip.fill(colorArray[SCRATCH_LED_COLOR], 0, SCRATCH_LED_PIXELS);
 			strip.show();
@@ -175,10 +178,9 @@ namespace MyScratchLed {
 				myRainbowCircle();
 			}
 
-			if (SCRATCH_LED_MODE == 20 && data_received) {
+			if (SCRATCH_LED_MODE == 20) {
 				strip.fill(colorArray[SCRATCH_LED_COLOR], 0, strip.numPixels());
 				strip.show();
-				data_received = false;
 			}
 
 			if (SCRATCH_LED_MODE >= 40 && SCRATCH_LED_MODE <= 42) {
@@ -201,6 +203,7 @@ namespace MyScratchLed {
 namespace {
 
 	void halfLit() {
+
 		if (SCRATCH_LED_MODE == 41 && data_received) {
 		strip.fill(colorArray[SCRATCH_LED_COLOR], 0, strip.numPixels() / 2);
 		strip.fill(0, strip.numPixels() / 2, strip.numPixels() / 2);

@@ -4,8 +4,8 @@
 #include <Arduino.h>
 
 // USB VID/PID
-constexpr uint16_t USB_VID = 0xCafe;
-constexpr uint16_t USB_PID = 0x4001;
+constexpr uint16_t USB_VID = 0xCAFE;
+constexpr uint16_t USB_PID = 0xF00D;
 
 // Keyboard Pins
 constexpr uint8_t KEY1_PIN = 2;
@@ -35,10 +35,12 @@ constexpr uint8_t KEY7_LED_PIN = 20;
 constexpr uint8_t KEY8_LED_PIN = 21;
 constexpr uint8_t KEY9_LED_PIN = 22;
 
+constexpr uint8_t LED_MOVE_INTERVAL = 100;
+
 
 // Scratch LED Settings
 constexpr uint8_t SCRATCH_LED_PIN = 24;
-constexpr uint8_t NUM_PIXELS = 60;
+constexpr uint8_t NUM_PIXELS = 60; // 変えても多分意味ない　ところどころ数値を直接書いてる
 
 
 constexpr uint8_t DEFAULT_SCRATCH_LED_BRIGHTNESS = 50;

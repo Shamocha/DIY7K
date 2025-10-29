@@ -11,6 +11,16 @@ namespace {
     constexpr uint32_t EEPROM_MAGIC = 0xCAFE1234;
     constexpr int EEPROM_ADDR = 0;
 
+    uint8_t start_lastCheckTime = 0;
+    uint8_t select_lastCheckTime = 0;
+    int32_t start_pressAccumulator = 0;
+    int32_t select_pressAccumulator = 0;
+    bool start_longPressTriggered = false;
+    bool select_longPressTriggered = false;
+    bool Loop = false;
+    bool saveTriggered = false;
+    bool resetTriggered = false;
+
     struct MyConfig {
         uint32_t magic;     
         bool     isEnabled;
@@ -23,7 +33,7 @@ namespace {
         uint8_t  scratchLedBrightness;
     };
 
-    Myconfig settingsValue;
+    MyConfig settingsValue;
 
     uint32_t currentTime[9] = {
 		0, 0, 0,
@@ -48,6 +58,8 @@ namespace {
 		false, false, false,
 		false, false, false
 	};
+
+    bool lastKeyState[9] = { false, false, false, false, false, false, false, false, false };
 
     uint8_t s_led_mode[4] = {99, 10, 20, 41};
 
@@ -84,52 +96,59 @@ namespace MySettings {
     void changeMode() {
         bool checkRelease = true;
         while (checkRelease) {
+
+            checkRelease = false;
+
             for (int i = 0; i < 9; i++) {
                 if (digitalRead(keys[i]) == HIGH) {
-                    checkRelease = false;
-                } else {
-                    checkRelease = true;
+                    checkRelease = true; // 一つでもHIGHだったらtrueにする
                 }
+            }
+
         }
 
-        bool lastKeyState[9] = { false, false, false, false, false, false, false, false, false };
+        lastKeyState[9] = (
+            false, false, false, 
+            false, false, false, 
+            false, false, false
+        );
 
-        uint32_t currentTime[9] = {
+        currentTime[9] = (
             0, 0, 0,
             0, 0, 0,
             0, 0, 0
-        };
+        );
 
-        uint32_t button_lastChangeTime[9] = {
+        button_lastChangeTime[9] = (
             0, 0, 0,
             0, 0, 0,
             0, 0, 0
-        };
+        );
 
-        bool button_isPressed[9] = {
+        button_isPressed[9] = (
             false, false, false,
             false, false, false,
             false, false, false
-        };
+        );
 
-        bool currentRawState[9] = {
+        currentRawState[9] = (
             false, false, false,
             false, false, false,
             false, false, false
-        };
+        );
 
 
-        bool Loop = true;
-        bool saveTriggered = false;
-        bool resetTriggered = false;
+        Loop = true;
+        saveTriggered = false;
+        resetTriggered = false;
 
         while (Loop) {
-            uint8_t start_lastCheckTime = 0;
-            uint8_t start_lastCheckTime = 0;
-            int32_t select_pressAccumulator = 0;
-            int32_t select_pressAccumulator = 0;
-            bool start_longPressTriggered = false;
-            bool select_longPressTriggered = false;
+            start_lastCheckTime = 0;
+            select_lastCheckTime = 0;
+            start_pressAccumulator = 0;
+            select_pressAccumulator = 0;
+            start_longPressTriggered = false;
+            select_longPressTriggered = false;
 
             processing();
         }
@@ -141,14 +160,23 @@ namespace MySettings {
         } else {
 
         }
-        
+
+           
     }
 
     void save() {
-        // Placeholder for future settings changes
+        settingsValue.magic = EEPROM_MAGIC;
+        EEPROM.put(EEPROM_ADDR, settingsValue);
+        EEPROM.commit();
     }
 
-    void core1_led_setup() {
+    void reset() {
+        settingsValue.magic = 0;
+        EEPROM.put(EEPROM_ADDR, settingsValue);
+        EEPROM.commit();
+    }
+
+    void to_core1_led_setup() {
 
         rp2040.fifo.push((uint32_t)settingsValue.scratchLedMode);
                 
@@ -159,10 +187,6 @@ namespace MySettings {
         rp2040.fifo.push(color);
 
 
-    }
-
-    void fifo_push(uint32_t data) {
-        rp2040.fifo.push(data);
     }
 
     bool getIsEnabled() {
@@ -199,8 +223,6 @@ namespace MySettings {
 
 }
 
-}
-
 namespace {
     void processing() {
         for (int i = 0; i < 9; i++) {
@@ -210,30 +232,51 @@ namespace {
 			if (currentRawState[i] != button_isPressed[i]) {
 
 				// デバウンスタイムが経過しているか確認
-				if (currentTime[i] - button_lastChangeTime[i] > DEBOUNCE_DELAY_MS) {
+				if (currentTime[i] - button_lastChangeTime[i] > DEFAULT_DEBOUNCE_DELAY_MS) {
 					button_isPressed[i] = currentRawState[i];
 					button_lastChangeTime[i] = currentTime[i];
 				}
 			}
 		}
 
-        for (int i = 0; i < 9; i++) {
-			if (digitalRead(keys[i]) == LOW) {
+        if (settingsValue.keyboardLedMode == 0) {
+
+			// 消灯 NOP
+
+		} else if (settingsValue.keyboardLedMode == 1) {
+
+			// 常時点灯
+			for (int i = 0; i < 9; i++) {
 				digitalWrite(keyLeds[i], HIGH);
-			} 
-			else {
-				digitalWrite(keyLeds[i], LOW);
 			}
+
+		} else if (settingsValue.keyboardLedMode == 2) {
+
+			// 押下時点灯
+			for (int i = 0; i < 9; i++) {
+				if (digitalRead(keys[i]) == LOW) {
+					digitalWrite(keyLeds[i], HIGH);
+				} else {
+					digitalWrite(keyLeds[i], LOW);
+				}
+			}
+
+		} else if (settingsValue.keyboardLedMode == 3) {
+
+			// flow
+			MyGamepad::keyLighting_flow();
+			
 		}
+
 
         // 鍵盤LEDモード変更 1鍵
         if (button_isPressed[0] && !lastKeyState[0]) { 
-            if (settingsValue.keyboardLedMode < 3) {
+            if (settingsValue.keyboardLedMode < 4) {
                 settingsValue.keyboardLedMode++;
             } else {
                 settingsValue.keyboardLedMode = 0;
             }
-            uint8_t num1 = (30 * settingsValue.keyboardLedMode) + 100;
+            uint8_t num1 = (15 * (settingsValue.keyboardLedMode + 1)) + 100;
             rp2040.fifo.push(num1);
             lastKeyState[0] = true;
         }
@@ -241,13 +284,17 @@ namespace {
         // スクラッチLEDモード変更 2鍵
         if (button_isPressed[1] && !lastKeyState[1]) { 
             if (settingsValue.scratchLedMode >= 40 && settingsValue.scratchLedMode <= 42) {
-                rp2040.fifo.push(s_led_mode[3]);
-            } else if (settingsValue.scratchLedMode == 20) {
-                rp2040.fifo.push(s_led_mode[2]);
-            } else if (settingsValue.scratchLedMode == 10) {
-                rp2040.fifo.push(s_led_mode[1]);
-            } else {
                 rp2040.fifo.push(s_led_mode[0]);
+                settingsValue.scratchLedMode = s_led_mode[0];
+            } else if (settingsValue.scratchLedMode == 10) {
+                rp2040.fifo.push(s_led_mode[2]);
+                settingsValue.scratchLedMode = s_led_mode[2];
+            } else if (settingsValue.scratchLedMode == 20) {
+                rp2040.fifo.push(s_led_mode[3]);
+                settingsValue.scratchLedMode = s_led_mode[3];
+            } else {
+                rp2040.fifo.push(s_led_mode[1]);
+                settingsValue.scratchLedMode = s_led_mode[1];
             }
 
             lastKeyState[1] = true;
@@ -291,7 +338,7 @@ namespace {
                 int8_t diff = (int8_t)(currCount - lastCount);
                 uint8_t sens = settingsValue.scratchSens / 3;
 			    if (diff >= 1) { // 減少
-                    if (sens >= 2 && sens <= 60)
+                    if (sens >= 2 && sens <= 60) {
                         sens--;;
                         settingsValue.scratchSens = sens * 3;
                         rp2040.fifo.push(sens + 100);
@@ -313,7 +360,8 @@ namespace {
                         settingsValue.scratchSens = 60;
                         rp2040.fifo.push(160);
                         lastCount = currCount;
-			    }
+			        }
+                }
             }
         }
 

@@ -14,10 +14,15 @@ namespace {
 
 	uint8_t DEBOUNCE_DELAY_MS = 30;
 	uint8_t ENCODER_SENS = 60;
+	uint8_t keyLedMode = 0;
 
 	uint32_t lastCheckTime = 0;
 	int32_t pressAccumulator = 0;
 	bool longPressTriggered = false;
+
+	uint32_t lastLedMoveTime = 0; 
+	int8_t currLed = 0;           
+	int8_t ledDirection = 1;
 
 	bool firstLoop = true;
 	uint8_t lastAxisValue = 0;
@@ -60,6 +65,7 @@ namespace {
 
 	bool setupPioEncoder(uint pin_a);
 	void reset_gamepad_report();
+	void settings_check_buttonState();
 	
 
 }
@@ -114,6 +120,7 @@ namespace MyGamepad {
 			if (MySettings::getIsMagicValid()) {
 				DEBOUNCE_DELAY_MS = MySettings::getDebounceTime();
 				ENCODER_SENS = MySettings::getScratchSens();
+				keyLedMode = MySettings::getKeyboardLedMode();
 			} else {
 				DEBOUNCE_DELAY_MS = DEFAULT_DEBOUNCE_DELAY_MS;
 				ENCODER_SENS = DEFAULT_ENCODER_SENS;
@@ -127,9 +134,9 @@ namespace MyGamepad {
 	}
 
 	void gamepad_loop() {
-		uint8_t keyLedMode = MySettings::getKeyboardLedMode();
-		uint8_t DEBOUNCE_DELAY_MS = MySettings::getDebounceTime();
-		uint8_t ENCODER_SENS = MySettings::getScratchSens();
+		keyLedMode = MySettings::getKeyboardLedMode();
+		DEBOUNCE_DELAY_MS = MySettings::getDebounceTime();
+		ENCODER_SENS = MySettings::getScratchSens();
 
 		#ifdef TINYUSB_NEED_POLLING_TASK
 		// Manual call tud_task since it isn't called by Core's background
@@ -167,15 +174,38 @@ namespace MyGamepad {
 		}
 
 		// ボタンのLED制御 デバウンス処理には含めない
-		for (int i = 0; i < 9; i++) {
-			if (digitalRead(keys[i]) == LOW) {
+		
+		if (keyLedMode == 0) {
+
+			// 消灯 NOP
+
+		} else if (keyLedMode == 1) {
+
+			// 常時点灯
+			for (int i = 0; i < 9; i++) {
 				digitalWrite(keyLeds[i], HIGH);
-			} 
-			else {
-				digitalWrite(keyLeds[i], LOW);
 			}
+
+		} else if (keyLedMode == 2) {
+
+			// 押下時点灯
+			for (int i = 0; i < 9; i++) {
+				if (digitalRead(keys[i]) == LOW) {
+					digitalWrite(keyLeds[i], HIGH);
+				} else {
+					digitalWrite(keyLeds[i], LOW);
+				}
+			}
+
+		} else if (keyLedMode == 3) {
+
+			// flow
+			keyLighting_flow();
+
 		}
 
+		
+		
 		// ロータリーエンコーダの処理
 		int32_t encoder_count = quadrature_encoder_get_count(g_pio_enc_instance, g_pio_enc_sm);
 		
@@ -208,19 +238,52 @@ namespace MyGamepad {
 		settings_check_buttonState();
 
 	}
-}
+
+	void keyLighting_flow() {
+
+		for (int i = 7; i < 9; i++) {
+			if (digitalRead(keys[i] == LOW)) {
+				digitalWrite(keyLeds[i], HIGH);
+			} else {
+				digitalWrite(keyLeds[i], LOW);
+			}
+		}
+
+		if (millis() - lastLedMoveTime < LED_MOVE_INTERVAL) {
+			return;
+		}
+
+		lastLedMoveTime = millis();
+
+		for (int i = 0; i < 7; i++) {
+			digitalWrite(keyLeds[i], LOW);
+		}
 
 
-namespace {
+		digitalWrite(keyLeds[currLed], HIGH);
+
+		if (currLed >= 6) {
+			ledDirection = -1; // 反転
+		} else if (currLed <= 0) {
+			ledDirection = 1; // 正転
+		}
+
+		currLed = currLed + ledDirection;
+  
+	}
 
 	uint8_t getAxisValue() {
 		int32_t f_encoder_count = quadrature_encoder_get_count(g_pio_enc_instance, g_pio_enc_sm);
 		
-		int32_t f_scaled_count = encoder_count / ENCODER_SENS;
-  		uint8_t f_axis_value = (uint8_t)(scaled_count & 0xFF);
+		int32_t f_scaled_count = f_encoder_count / ENCODER_SENS;
+  	uint8_t f_axis_value = (uint8_t)(f_scaled_count & 0xFF);
   		
 		return f_axis_value;
 	}
+}
+
+
+namespace {
 
 	void settings_check_buttonState() {
 		uint32_t now = millis();
@@ -264,8 +327,6 @@ namespace {
 		usb_hid.sendReport(0, &gp, sizeof(gp));
 	}
 
-	// --- PIOエンコーダ初期化関数 ---
-	// (C-SDKヘルパーのロジックを移植)
 	bool setupPioEncoder(uint pin_a) {
 		g_pio_enc_sm = (int8_t)pio_claim_unused_sm(g_pio_enc_instance, true);
 		if (g_pio_enc_sm == (uint)-1) {
