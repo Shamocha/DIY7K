@@ -60,6 +60,7 @@ namespace {
 
 	bool setupPioEncoder(uint pin_a);
 	void reset_gamepad_report();
+	
 
 }
 
@@ -211,6 +212,15 @@ namespace MyGamepad {
 
 
 namespace {
+
+	uint8_t getAxisValue() {
+		int32_t f_encoder_count = quadrature_encoder_get_count(g_pio_enc_instance, g_pio_enc_sm);
+		
+		int32_t f_scaled_count = encoder_count / ENCODER_SENS;
+  		uint8_t f_axis_value = (uint8_t)(scaled_count & 0xFF);
+  		
+		return f_axis_value;
+	}
 
 	void settings_check_buttonState() {
 		uint32_t now = millis();

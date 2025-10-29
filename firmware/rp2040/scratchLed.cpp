@@ -24,7 +24,7 @@
 // 41 = left half, 42 = right half
 // 50 to 70 = selected color
 // 99 = off
-// 100 to 160 = number of pixels lit in red
+// 100 to 160 = number of pixels lit
 // 2000 to 2255 = brightness level (0 to 255)
 
 namespace {
@@ -34,6 +34,9 @@ namespace {
 	uint8_t SCRATCH_LED_BRIGHTNESS = DEFAULT_SCRATCH_LED_BRIGHTNESS;
 	uint8_t SCRATCH_LED_MODE = DEFAULT_SCRATCH_LED_MODE;
 	uint8_t SCRATCH_LED_COLOR = DEFAULT_LED_COLOR;
+	uint8_t SCRATCH_LED_PIXELS = 0;
+	uint8_t lightDuration = 500
+	int pixels_timer = 0;
 
 	struct RawColorData {
 		uint8_t red;
@@ -146,9 +149,27 @@ namespace MyScratchLed {
 				SCRATCH_LED_COLOR = (uint8_t)(latest_data - 50);
 			}
 
+			if (SCRATCH_LED_MODE >= 40 && SCRATCH_LED_MODE <= 42) {
+				SCRATCH_LED_MODE = (uint8_t)(latest_data);
+			}
 
+			if (latest_data == 99) {
+				SCRATCH_LED_MODE = 99;
+			}
 
+			if (latest_data >= 100 && latest_data <= 160) {
+				SCRATCH_LED_PIXELS = (uint8_t)(latest_data - 100);
+				pixels_timer = millis();
+			}
 
+		}
+
+		uint32_t currTime = millis();
+		if (currTime - pixels_timer < lightDuration) {
+			strip.clear();
+			strip.fill(colorArray[SCRATCH_LED_COLOR], 0, SCRATCH_LED_PIXELS);
+			strip.show();
+		} else {
 
 			if (SCRATCH_LED_MODE == 10) {
 				myRainbowCircle();
@@ -164,9 +185,14 @@ namespace MyScratchLed {
 				halfLit();
 			}
 
-
-
+			if (SCRATCH_LED_MODE == 99) {
+				strip.fill(0, 0, strip.numPixels());
+				strip.show();
+			}
 		}
+
+
+
 	}
 
 }
