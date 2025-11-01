@@ -20,6 +20,8 @@ namespace {
     bool Loop = false;
     bool saveTriggered = false;
     bool resetTriggered = false;
+    uint8_t lastCount = 0;
+    uint8_t currCount = 0;
 
     struct MyConfig {
         uint32_t magic;     
@@ -105,6 +107,11 @@ namespace MySettings {
                 }
             }
 
+        }
+
+        for(int i = 0; i <= 60; i++) {
+            rp2040.fifo.push(i + 100);
+            delay(10);
         }
 
         lastKeyState[9] = (
@@ -225,6 +232,7 @@ namespace MySettings {
 
 namespace {
     void processing() {
+
         for (int i = 0; i < 9; i++) {
 			currentTime[i] = millis();
 			currentRawState[i] = (digitalRead(keys[i]) == LOW);
@@ -241,7 +249,10 @@ namespace {
 
         if (settingsValue.keyboardLedMode == 0) {
 
-			// 消灯 NOP
+			// 消灯
+            for (int i = 0; i < 9; i++) {
+                digitalWrite(keyLeds[i], LOW);
+            }
 
 		} else if (settingsValue.keyboardLedMode == 1) {
 
@@ -302,18 +313,18 @@ namespace {
 
         // キーボードデバウンスタイム変更 3鍵
         if (button_isPressed[2] && !lastKeyState[2]) {
-            uint8_t lastCount = MyGamepad::getAxisValue();
+            lastCount = MyGamepad::getAxisValue();
             while (digitalRead(keys[2]) == LOW) {
-                uint8_t currCount = MyGamepad::getAxisValue();
+                currCount = MyGamepad::getAxisValue();
                 int8_t diff = (int8_t)(currCount - lastCount);
 			    if (diff >= 1) { // 減少
-                    if (settingsValue.debounceTime >= 2 && settingsValue.debounceTime >= 120) {
+                    if (settingsValue.debounceTime >= 2 && settingsValue.debounceTime <= 120) {
                         settingsValue.debounceTime -= 2;
                         rp2040.fifo.push(settingsValue.debounceTime / 2 + 100);
                         lastCount = currCount;
                     } else {
-                        settingsValue.debounceTime = 120;
-                        rp2040.fifo.push(settingsValue.debounceTime / 2 + 100);
+                        settingsValue.debounceTime = 0;
+                        rp2040.fifo.push(100);
                         lastCount = currCount;
                     }
                 } else if (diff <= -1) {
@@ -323,7 +334,7 @@ namespace {
                         lastCount = currCount;
                     } else {
                         settingsValue.debounceTime = 120;
-                        rp2040.fifo.push(settingsValue.debounceTime / 2 + 100); 
+                        rp2040.fifo.push(160); 
                         lastCount = currCount;
 			        }
                 }
@@ -332,11 +343,15 @@ namespace {
 
         // スクラッチ感度変更 4鍵
         if (button_isPressed[3] && !lastKeyState[3]) {
-            uint8_t lastCount = MyGamepad::getAxisValue();
+            lastCount = MyGamepad::getAxisValue();
+            uint32_t lastLitTime = 0;
+            uint32_t currLitTime = 0;
             while (digitalRead(keys[3]) == LOW) {
-                uint8_t currCount = MyGamepad::getAxisValue();
+                currCount = MyGamepad::getAxisValue();
                 int8_t diff = (int8_t)(currCount - lastCount);
                 uint8_t sens = settingsValue.scratchSens / 3;
+                currLitTime = millis();
+                if(currLitTime - lastLitTime <= 10) rp2040.fifo.push(sens + 100);
 			    if (diff >= 1) { // 減少
                     if (sens >= 2 && sens <= 60) {
                         sens--;;
@@ -357,11 +372,13 @@ namespace {
                         lastCount = currCount;
                     } else {
                         sens = 60;
-                        settingsValue.scratchSens = 60;
+                        settingsValue.scratchSens = 180;
                         rp2040.fifo.push(160);
                         lastCount = currCount;
 			        }
                 }
+
+                lastLitTime = currLitTime;
             }
         }
 
@@ -374,22 +391,27 @@ namespace {
             }
             uint8_t num6 = 50 + settingsValue.scratchLedColor;
             rp2040.fifo.push(num6);
+            rp2040.fifo.push(160);
             lastKeyState[5] = true;
         }
 
         // スクラッチLED明るさ変更 7鍵
         if (button_isPressed[6] && !lastKeyState[6]) {
-            uint8_t lastCount = MyGamepad::getAxisValue();
+            uint32_t lastLitTime = 0;
+            uint32_t currLitTime = 0;
+            lastCount = MyGamepad::getAxisValue();
             while (digitalRead(keys[6]) == LOW) {
-                uint8_t currCount = MyGamepad::getAxisValue();
+                currCount = MyGamepad::getAxisValue();
                 int8_t diff = (int8_t)(currCount - lastCount); 
                 uint8_t inputVal = settingsValue.scratchLedBrightness;
+                currLitTime = millis();
+                if(currLitTime - lastLitTime <= 10) rp2040.fifo.push(map(inputVal, 1, 255, 1, 60));
                 
                 if (diff >= 1) { 
                     if (inputVal >= 2) {
                         inputVal--;
                         settingsValue.scratchLedBrightness = inputVal;
-                        uint8_t num7 = 2000 + inputVal;
+                        uint16_t num7 = 2000 + inputVal;
                         rp2040.fifo.push(num7);
                         uint8_t brightnessVal = map(inputVal, 1, 255, 1, 60);
                         rp2040.fifo.push(brightnessVal + 100);
@@ -397,7 +419,7 @@ namespace {
                     } else {
                         inputVal = 1;
                         settingsValue.scratchLedBrightness = inputVal;
-                        uint8_t num7 = 2000 + inputVal;
+                        uint16_t num7 = 2000 + inputVal;
                         rp2040.fifo.push(num7);
                         uint8_t brightnessVal = map(inputVal, 1, 255, 1, 60);
                         rp2040.fifo.push(brightnessVal + 100);
@@ -407,7 +429,7 @@ namespace {
                     if (inputVal <= 254) {
                         inputVal++;
                         settingsValue.scratchLedBrightness = inputVal;
-                        uint8_t num7 = 2000 + inputVal;
+                        uint16_t num7 = 2000 + inputVal;
                         rp2040.fifo.push(num7);
                         uint8_t brightnessVal = map(inputVal, 1, 255, 1, 60);
                         rp2040.fifo.push(brightnessVal + 100);
@@ -415,13 +437,15 @@ namespace {
                     } else {
                         inputVal = 255;
                         settingsValue.scratchLedBrightness = inputVal;
-                        uint8_t num7 = 2000 + inputVal;
+                        uint16_t num7 = 2000 + inputVal;
                         rp2040.fifo.push(num7);
                         uint8_t brightnessVal = map(inputVal, 1, 255, 1, 60);
                         rp2040.fifo.push(brightnessVal + 100);
                         lastCount = currCount;
                     }
                 }
+
+                lastLitTime = currLitTime;
             }
         }
 
@@ -488,5 +512,7 @@ namespace {
                     lastKeyState[i] = false;
             }
         }
+
+        lastCount = MyGamepad::getAxisValue();
     }
 }

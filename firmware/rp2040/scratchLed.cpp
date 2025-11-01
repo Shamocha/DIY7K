@@ -40,11 +40,16 @@ namespace {
 
 	bool data_received = false;
 
+	bool halfon = false;
 	bool left_on = false;
 	bool right_on = false;
 
 	uint32_t left_timer = 0;
 	uint32_t right_timer = 0;
+
+	uint32_t rbc_update_interval = 50;
+	uint32_t rbc_last_update_time = 0;
+	uint16_t rbc_time_offset = 0;
 
 	struct RawColorData {
 		uint8_t red;
@@ -110,12 +115,7 @@ namespace {
 
 
 	void halfLit();
-	void colorWipe(uint32_t c, uint8_t wait);
-	void rainbow(uint8_t wait);
-	void rainbowCycle(uint8_t wait);
-	void theaterChase(uint32_t c, uint8_t wait);
 	uint32_t Wheel(byte WheelPos);
-	void theaterChaseRainbow(uint8_t wait);
 	void myRainbowCircle();
 
 }
@@ -154,6 +154,7 @@ namespace MyScratchLed {
 
 			if (SCRATCH_LED_MODE >= 40 && SCRATCH_LED_MODE <= 42) {
 				SCRATCH_LED_MODE = (uint8_t)(latest_data);
+				halfon = true;
 			}
 
 			if (latest_data == 99) {
@@ -175,8 +176,7 @@ namespace MyScratchLed {
 		} else {
 
 			if (SCRATCH_LED_MODE == 10) {
-				// myRainbowCircle();
-				strip.fill(colorArray[SCRATCH_LED_COLOR], 0, 2);
+				myRainbowCircle();
 			}
 
 			if (SCRATCH_LED_MODE == 20) {
@@ -205,24 +205,27 @@ namespace {
 
 	void halfLit() {
 
-		if (SCRATCH_LED_MODE == 41 && data_received) {
+		if (SCRATCH_LED_MODE == 41 && halfon) {
 		strip.fill(colorArray[SCRATCH_LED_COLOR], 0, strip.numPixels() / 2);
 		strip.fill(0, strip.numPixels() / 2, strip.numPixels() / 2);
 		strip.show();
-		data_received = false;
+		halfon = false;
 		left_on = true;
 		right_on = false;
+		SCRATCH_LED_MODE = 40;
+		right_timer = 0;
 		left_timer = millis();
 	}
 
-	if (SCRATCH_LED_MODE == 42 && data_received) {
+	if (SCRATCH_LED_MODE == 42 && halfon) {
 		strip.fill(0, 0, strip.numPixels() / 2);
 		strip.fill(colorArray[SCRATCH_LED_COLOR], strip.numPixels() / 2, strip.numPixels() / 2);
 		strip.show();
-		data_received = false;
+		halfon = false;
 		left_on = false;
 		right_on = true;
 		left_timer = 0;
+		SCRATCH_LED_MODE = 40;
 		right_timer = millis();
 	}
 
@@ -261,93 +264,29 @@ namespace {
 
 	void myRainbowCircle() {
 
-		// Some example procedures showing how to display to the pixels:
-		colorWipe(strip.Color(255, 0, 0), 50); // Red
-		colorWipe(strip.Color(0, 255, 0), 50); // Green
-		colorWipe(strip.Color(0, 0, 255), 50); // Blue
-		//colorWipe(strip.Color(0, 0, 0, 255), 50); // White RGBW
-		// Send a theater pixel chase in...
-		theaterChase(strip.Color(127, 127, 127), 50); // White
-		theaterChase(strip.Color(127, 0, 0), 50); // Red
-		theaterChase(strip.Color(0, 0, 127), 50); // Blue
-
-		rainbow(20);
-		rainbowCycle(20);
-		theaterChaseRainbow(50);
-
-	}
-	// Fill the dots one after the other with a color
-	void colorWipe(uint32_t c, uint8_t wait) {
-		for(uint16_t i=0; i<strip.numPixels(); i++) {
-			strip.setPixelColor(i, c);
-			strip.show();
-			delay(wait);
+		if (millis() - rbc_last_update_time < rbc_update_interval) {
+			return; 
 		}
-	}
 
-	void rainbow(uint8_t wait) {
-		uint16_t i, j;
+		rbc_last_update_time = millis();
 
-		for(j=0; j<256; j++) {
-			for(i=0; i<strip.numPixels(); i++) {
-			strip.setPixelColor(i, Wheel((i+j) & 255));
-			}
-			strip.show();
-			delay(wait);
+		for (uint16_t i = 0; i < strip.numPixels(); i++) {
+			
+			uint32_t color = Wheel(((i * 256 / strip.numPixels()) + rbc_time_offset) & 255);
+			strip.setPixelColor(i, color);
 		}
-	}
 
-	// Slightly different, this makes the rainbow equally distributed throughout
-	void rainbowCycle(uint8_t wait) {
-		uint16_t i, j;
+		strip.show();
 
-		for(j=0; j<256*5; j++) { // 5 cycles of all colors on wheel
-			for(i=0; i< strip.numPixels(); i++) {
-			strip.setPixelColor(i, Wheel(((i * 256 / strip.numPixels()) + j) & 255));
-			}
-			strip.show();
-			delay(wait);
+		rbc_time_offset++;
+
+		if (rbc_time_offset >= (256 * 5)) {
+			rbc_time_offset = 0;
 		}
+
 	}
 
-	//Theatre-style crawling lights.
-	void theaterChase(uint32_t c, uint8_t wait) {
-		for (int j=0; j<10; j++) {  //do 10 cycles of chasing
-			for (int q=0; q < 3; q++) {
-			for (uint16_t i=0; i < strip.numPixels(); i=i+3) {
-				strip.setPixelColor(i+q, c);    //turn every third pixel on
-			}
-			strip.show();
 
-			delay(wait);
-
-			for (uint16_t i=0; i < strip.numPixels(); i=i+3) {
-				strip.setPixelColor(i+q, 0);        //turn every third pixel off
-			}
-			}
-		}
-	}
-
-	//Theatre-style crawling lights with rainbow effect
-	void theaterChaseRainbow(uint8_t wait) {
-		for (int j=0; j < 256; j++) {     // cycle all 256 colors in the wheel
-			for (int q=0; q < 3; q++) {
-			for (uint16_t i=0; i < strip.numPixels(); i=i+3) {
-				strip.setPixelColor(i+q, Wheel( (i+j) % 255));    //turn every third pixel on
-			}
-			strip.show();
-
-			delay(wait);
-
-			for (uint16_t i=0; i < strip.numPixels(); i=i+3) {
-				strip.setPixelColor(i+q, 0);        //turn every third pixel off
-			}
-			}
-		}
-	}
-
-	// Input a value 0 to 255 to get a color value.
-	// The colours are a transition r - g - b - back to r.
 	uint32_t Wheel(byte WheelPos) {
 		WheelPos = 255 - WheelPos;
 		if(WheelPos < 85) {

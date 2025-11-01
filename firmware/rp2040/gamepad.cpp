@@ -180,7 +180,10 @@ namespace MyGamepad {
 		
 		if (keyLedMode == 0) {
 
-			// 消灯 NOP
+			// 消灯
+			for (int i = 0; i < 9; i++) {
+				digitalWrite(keyLeds[i], LOW);
+			}
 
 		} else if (keyLedMode == 1) {
 
@@ -221,9 +224,9 @@ namespace MyGamepad {
 
 			int8_t diff = (int8_t)(axis_value - lastAxisValue);
 			if (diff >= 1) {
-				rp2040.fifo.push(41);
+				rp2040.fifo.push_nb(41);
 			} else if (diff <= -1) {
-				rp2040.fifo.push(42);
+				rp2040.fifo.push_nb(42);
 			}
 			lastAxisValue = axis_value;
 
@@ -276,9 +279,9 @@ namespace MyGamepad {
 	}
 
 	uint8_t getAxisValue() {
-		int32_t f_encoder_count = quadrature_encoder_get_count(g_pio_enc_instance, g_pio_enc_sm);
+	int32_t f_encoder_count = quadrature_encoder_get_count(g_pio_enc_instance, g_pio_enc_sm);
 		
-		int32_t f_scaled_count = f_encoder_count / ENCODER_SENS;
+	int32_t f_scaled_count = f_encoder_count / 60;
   	uint8_t f_axis_value = (uint8_t)(f_scaled_count & 0xFF);
   		
 		return f_axis_value;
@@ -322,7 +325,7 @@ namespace {
 
 		TinyUSBDevice.task();
 		if (!usb_hid.ready()) return;
-		
+
 		gp.x = 0;
 		gp.y = 0;
 		gp.z = 0;
@@ -355,7 +358,7 @@ namespace {
 		}
 		pio_add_program_at_offset(g_pio_enc_instance, &quadrature_encoder_program, offset);
 
-		int max_rate = 10000; // step数
+		int max_rate = 100000; // step数
 		quadrature_encoder_program_init(g_pio_enc_instance, g_pio_enc_sm, pin_a, max_rate);
 
 		return true;
