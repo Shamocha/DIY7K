@@ -36,7 +36,7 @@ START(長押し): EEPROMに設定を保存
 SELECT(長押し): 初期値に設定をリセット
 
 ## LICENSES
-このプロジェクトはMITライセンスです。詳細はLICENSE.txtをご覧ください。
+このプロジェクトはMITライセンスです。詳細はLICENSEをご覧ください。
 
 The project is licensed under the MIT License - see the LICENSE.txt file for details.
 
