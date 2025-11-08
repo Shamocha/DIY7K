@@ -40,13 +40,6 @@ namespace {
 
 	bool data_received = false;
 
-	bool halfon = false;
-	bool left_on = false;
-	bool right_on = false;
-
-	uint32_t left_timer = 0;
-	uint32_t right_timer = 0;
-
 	uint32_t rbc_update_interval = 50;
 	uint32_t rbc_last_update_time = 0;
 	uint16_t rbc_time_offset = 0;
@@ -113,8 +106,6 @@ namespace {
 		{0, 0, 0}       // Off
 	};
 
-
-	void halfLit();
 	uint32_t Wheel(byte WheelPos);
 	void myRainbowCircle();
 
@@ -153,8 +144,7 @@ namespace MyScratchLed {
 			}
 
 			if (SCRATCH_LED_MODE >= 40 && SCRATCH_LED_MODE <= 42) {
-				SCRATCH_LED_MODE = (uint8_t)(latest_data);
-				halfon = true;
+				// None
 			}
 
 			if (latest_data == 99) {
@@ -185,7 +175,7 @@ namespace MyScratchLed {
 			}
 
 			if (SCRATCH_LED_MODE >= 40 && SCRATCH_LED_MODE <= 42) {
-				halfLit();
+				// None
 			}
 
 			if (SCRATCH_LED_MODE == 99) {
@@ -202,65 +192,6 @@ namespace MyScratchLed {
 
 
 namespace {
-
-	void halfLit() {
-
-		if (SCRATCH_LED_MODE == 41 && halfon) {
-		strip.fill(colorArray[SCRATCH_LED_COLOR], 0, strip.numPixels() / 2);
-		strip.fill(0, strip.numPixels() / 2, strip.numPixels() / 2);
-		strip.show();
-		halfon = false;
-		left_on = true;
-		right_on = false;
-		SCRATCH_LED_MODE = 40;
-		right_timer = 0;
-		left_timer = millis();
-	}
-
-	if (SCRATCH_LED_MODE == 42 && halfon) {
-		strip.fill(0, 0, strip.numPixels() / 2);
-		strip.fill(colorArray[SCRATCH_LED_COLOR], strip.numPixels() / 2, strip.numPixels() / 2);
-		strip.show();
-		halfon = false;
-		left_on = false;
-		right_on = true;
-		left_timer = 0;
-		SCRATCH_LED_MODE = 40;
-		right_timer = millis();
-	}
-
-	if (left_on) {
-		uint32_t base_time = millis();
-		if (base_time - left_timer < LIGHTS_TIME) {
-			float ratio = (float)(base_time - left_timer) / LIGHTS_TIME;
-			uint8_t new_red = (uint8_t)(allColors[SCRATCH_LED_COLOR].red * ratio);
-			uint8_t new_green = (uint8_t)(allColors[SCRATCH_LED_COLOR].green * ratio);
-			uint8_t new_blue = (uint8_t)(allColors[SCRATCH_LED_COLOR].blue * ratio);
-			uint32_t new_color = strip.Color(new_red, new_green, new_blue);
-			strip.fill(new_color, 0, strip.numPixels() / 2);
-			strip.fill(0, strip.numPixels() / 2, strip.numPixels() / 2);
-			strip.show();
-		} else {
-			left_on = false;
-		}
-	}
-
-	if (right_on) {
-		uint32_t base_time = millis();
-		if (base_time - right_timer < LIGHTS_TIME) {
-			float ratio = (float)(base_time - right_timer) / LIGHTS_TIME;
-			uint8_t new_red = (uint8_t)(allColors[SCRATCH_LED_COLOR].red * ratio);
-			uint8_t new_green = (uint8_t)(allColors[SCRATCH_LED_COLOR].green * ratio);
-			uint8_t new_blue = (uint8_t)(allColors[SCRATCH_LED_COLOR].blue * ratio);
-			uint32_t new_color = strip.Color(new_red, new_green, new_blue);
-			strip.fill(0, 0, strip.numPixels() / 2);
-			strip.fill(new_color, strip.numPixels() / 2, strip.numPixels() / 2);
-			strip.show();
-		} else {
-			right_on = false;
-		}
-	}
-}
 
 	void myRainbowCircle() {
 

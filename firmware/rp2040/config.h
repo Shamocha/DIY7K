@@ -35,12 +35,12 @@ constexpr uint8_t KEY7_LED_PIN = 22;
 constexpr uint8_t KEY8_LED_PIN = 14;
 constexpr uint8_t KEY9_LED_PIN = 15;
 
-constexpr uint8_t LED_MOVE_INTERVAL = 100;
+constexpr uint8_t LED_MOVE_INTERVAL = 75;
 
 
 // Scratch LED Settings
 constexpr uint8_t SCRATCH_LED_PIN = 27;
-constexpr uint8_t NUM_PIXELS = 60; // 変えても多分意味ない　ところどころ数値を直接書いてる
+constexpr uint8_t NUM_PIXELS = 60; // 変えても意味ない　ところどころ数値を直接書いてる
 
 
 constexpr uint8_t DEFAULT_SCRATCH_LED_BRIGHTNESS = 50;
@@ -54,7 +54,7 @@ constexpr uint16_t LIGHTS_TIME = 350;
 
 constexpr uint8_t DEFAULT_KEYBOARD_LED_MODE = 2;
 
-constexpr uint8_t DEFAULT_DEBOUNCE_DELAY_MS = 30;
+constexpr uint8_t DEFAULT_DEBOUNCE_DELAY_MS = 50;
 
 constexpr uint8_t DEFAULT_ENCODER_SENS = 60;
 

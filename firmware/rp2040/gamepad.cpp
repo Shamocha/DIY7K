@@ -28,8 +28,8 @@ namespace {
 	uint8_t lastAxisValue = 0;
 
 	
-	PIO g_pio_enc_instance = pio0; // PIOインスタンス
-	uint g_pio_enc_sm;            // ステートマシン番号
+	PIO g_pio_enc_instance = pio0; 
+	uint g_pio_enc_sm;            
 
 	uint8_t const desc_hid_report[] = {
     TUD_HID_REPORT_DESC_GAMEPAD()
@@ -73,12 +73,10 @@ namespace {
 namespace MyGamepad {
 	void gamepad_setup() {
 
-		// GPIO setup for keys
 		for (int i = 0; i < 9; i++) {
 			pinMode(keys[i], INPUT_PULLUP);
 		}
 
-		// GPIO setup for key LEDs
 		for (int i = 0; i < 9; i++) {
 			pinMode(keyLeds[i], OUTPUT);
 			digitalWrite(keyLeds[i], LOW);
@@ -98,7 +96,6 @@ namespace MyGamepad {
 		usb_hid.setReportDescriptor(desc_hid_report, sizeof(desc_hid_report));
 		usb_hid.begin();
 
-		// If already enumerated, additional class driverr begin() e.g msc, hid, midi won't take effect until re-enumeration
 		if (TinyUSBDevice.mounted()) {
 			TinyUSBDevice.detach();
 			delay(10);
@@ -142,16 +139,14 @@ namespace MyGamepad {
 		ENCODER_SENS = MySettings::getScratchSens();
 
 		#ifdef TINYUSB_NEED_POLLING_TASK
-		// Manual call tud_task since it isn't called by Core's background
 		TinyUSBDevice.task();
 		#endif
 
-		// not enumerated()/mounted() yet: nothing to do
 		if (!TinyUSBDevice.mounted()) {
 			return;
 		}
 
-		if (!usb_hid.ready()) return; // ?
+		if (!usb_hid.ready()) return; 
 
 		
 		// ボタン処理
@@ -161,17 +156,47 @@ namespace MyGamepad {
 
 			if (currentRawState[i] != button_isPressed[i]) {
 
-				// デバウンスタイムが経過しているか確認
-				if (currentTime[i] - button_lastChangeTime[i] > DEBOUNCE_DELAY_MS) {
-					button_isPressed[i] = currentRawState[i];
+				if (i < 7) {
+					// デバウンスタイムが経過しているか確認
+					if (currentTime[i] - button_lastChangeTime[i] > DEBOUNCE_DELAY_MS) {
+						button_isPressed[i] = currentRawState[i];
 
-					if (button_isPressed[i]) {
-						gp.buttons |= (1U << i);
+						if (button_isPressed[i]) {
+							gp.buttons |= (1U << i);
+						}
+						else {
+							gp.buttons &= ~(1U << i);
+						}
+						button_lastChangeTime[i] = currentTime[i];
 					}
-					else {
-						gp.buttons &= ~(1U << i);
+
+				} else {
+
+					if (i == 7) {
+						if (currentTime[7] - button_lastChangeTime[7] > DEBOUNCE_DELAY_MS) {
+							button_isPressed[7] = currentRawState[7];
+
+							if (button_isPressed[7]) {
+								gp.buttons |= (1U << 8);
+							}
+							else {
+								gp.buttons &= ~(1U << 8);
+							}
+							button_lastChangeTime[7] = currentTime[7];
+						}
+					} else if (i == 8) {
+						if (currentTime[8] - button_lastChangeTime[8] > DEBOUNCE_DELAY_MS) {
+							button_isPressed[8] = currentRawState[8];
+
+							if (button_isPressed[8]) {
+								gp.buttons |= (1U << 9);
+							}
+							else {
+								gp.buttons &= ~(1U << 9);
+							}
+							button_lastChangeTime[8] = currentTime[8];
+						}
 					}
-					button_lastChangeTime[i] = currentTime[i];
 				}
 			}
 		}
@@ -220,20 +245,7 @@ namespace MyGamepad {
   		gp.x = axis_value;
 		
 		uint8_t scratchLedMode = MySettings::getScratchLedMode();
-		if (scratchLedMode >= 40 && scratchLedMode <= 42 && !firstLoop) {
-
-			int8_t diff = (int8_t)(axis_value - lastAxisValue);
-			if (diff >= 1) {
-				rp2040.fifo.push_nb(41);
-			} else if (diff <= -1) {
-				rp2040.fifo.push_nb(42);
-			}
-			lastAxisValue = axis_value;
-
-		} else {
-			lastAxisValue = axis_value;
-			firstLoop = false;
-		}
+		firstLoop = false;
 
 
 		
@@ -323,8 +335,9 @@ namespace {
 	
 	void reset_gamepad_report() {
 
-		TinyUSBDevice.task();
-		if (!usb_hid.ready()) return;
+		while (!usb_hid.ready()) {
+			delay(1);
+		}
 
 		gp.x = 0;
 		gp.y = 0;
@@ -336,23 +349,26 @@ namespace {
 		gp.buttons = 0;
 		usb_hid.sendReport(0, &gp, sizeof(gp));
 
-
+		delay(5);
 
 		for (int i = 0; i < 9; i++) {
 			digitalWrite(keyLeds[i], LOW);
 		}
+
+		TinyUSBDevice.task();
+		delay(10);
 	}
 
 	bool setupPioEncoder(uint pin_a) {
 		g_pio_enc_sm = (int8_t)pio_claim_unused_sm(g_pio_enc_instance, true);
 		if (g_pio_enc_sm == (uint)-1) {
-			Serial.println("Error: PIOに空きSMがありません");
+			Serial.println("PIOに空きSMなし");
 			return false;
 		}
 
 		uint offset = 0; 
 		if (!pio_can_add_program_at_offset(g_pio_enc_instance, &quadrature_encoder_program, offset)) {
-			Serial.println("Error: PIO 0番地にプログラムをロードできません");
+			Serial.println("PIOロード失敗");
 			pio_sm_unclaim(g_pio_enc_instance, g_pio_enc_sm);
 			return false;
 		}
