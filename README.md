@@ -1,10 +1,12 @@
 # DIY7K
 Raspberry Pi Pico (RP2040)を使用した７鍵コントローラー
+
 自分用なのでコードは雑です。多分更新もしません。
 
 ## Usage
 
 PicoのBOOTSELを押しながらPCに接続し、firmware/rp2040/buildにあるuf2ファイルを書き込みます。
+
 自衛のため、VID/PIDは仮のものになっています。
 変更したい方はArduino-Pico環境でコンパイルしてください。
 
