@@ -1,3 +1,14 @@
+/*
+ * SPDX-License-Identifier: LGPL-3.0-or-later
+ *
+ * このファイルは Adafruit_NeoPixel (LGPL-3.0) のサンプルコードを
+ * 改変したものです。
+ *
+ * 元のコードの著作権者: Copyright (c) Adafruit Industries
+ * 改変部分の著作権者:   Copyright (c) [2025] [Shamocha]
+ */
+
+
 #include "scratchLed.h"
 #include "config.h"
 #include <Adafruit_NeoPixel.h>
