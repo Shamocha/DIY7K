@@ -3,7 +3,7 @@ Raspberry Pi Pico (RP2040)を使用した７鍵コントローラー
 
 自分用なのでコードは雑です。多分更新もしません。
 
-!(IMG_20251108_190222.jpg)
+![sample image](IMG_20251108_190222.jpg)
 
 ## Usage
 
