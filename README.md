@@ -52,8 +52,15 @@ SELECT(長押し): 初期値に設定をリセット
 
 ## LICENSES
 このプロジェクトはMITライセンスです。詳細はLICENSEをご覧ください。
+ただし、一部のファイルは他のライセンスが適用されています。
 
 The project is licensed under the MIT License - see the LICENSE.txt file for details.
+However, please note that some files are subject to other licenses.
+
+LGPL-3.0 適用ファイル
+`firmware/rp2040/scratchLed.cpp` は、Adafruit_NeoPixelのサンプルコードを改変して作成したため、**LGPL-3.0**が適用されます。ライセンス条文は `LICENSE-LGPL-3.0.txt` を参照してください。
+
+The file firmware/rp2040/scratchLed.cpp is licensed under LGPL-3.0 as it is derived from modified sample code from Adafruit_NeoPixel. Please see LICENSE-LGPL-3.0.txt for the license text.
 
 このプロジェクトは、サードパーティのコードやライブラリを参照しています。それらのライセンスについては、NOTICE.txtをご覧ください。
 
