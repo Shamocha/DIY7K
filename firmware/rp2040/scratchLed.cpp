@@ -16,7 +16,6 @@
 
 
 // 10 = rainbow cycle, 20 = constant color
-// 41 = left half, 42 = right half
 // 50 to 70 = selected color
 // 99 = off
 // 100 to 160 = number of pixels lit
