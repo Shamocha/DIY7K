@@ -37,9 +37,16 @@ SELECT(長押し): 初期値に設定をリセット
 
 ## Dependencies
 
-* **quadrature_encoder.pio (BSD-3-Clause)**
-* Copyright (c) 2023 Raspberry Pi (Trading) Ltd.
-* [https://github.com/raspberrypi/pico-examples/blob/master/pio/quadrature_encoder/quadrature_encoder.pio]
+* **arduino-pico (LGPL-2.1)**
+* earlephilhower
+* [https://github.com/earlephilhower/arduino-pico]
+
+* **Adafruit_TinyUSB_Arduino (MIT)**
+* Copyright (c) 2019 Ha Thach for Adafruit Industries [https://github.com/adafruit/Adafruit_TinyUSB_Arduino]
+
+* **Adafruit_NeoPixel (LGPL-3.0)**
+* adafruit
+* [https://github.com/adafruit/Adafruit_NeoPixel]
 
 ## LICENSES
 このプロジェクトはMITライセンスです。詳細はLICENSEをご覧ください。
