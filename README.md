@@ -53,8 +53,8 @@ SELECT(長押し): 初期値に設定をリセット
 * [https://github.com/adafruit/Adafruit_NeoPixel]
 
 ## LICENSES
-このプロジェクトはMITライセンスです。詳細はLICENSEをご覧ください。
-ただし、一部のファイルは他のライセンスが適用されています。
+このプロジェクトはソースコードのみの提供です。ほとんどのソースコードはMITライセンスです。詳細はLICENSEをご覧ください。
+一部のファイルは他のライセンスが適用されています。
 
 The project is licensed under the MIT License - see the LICENSE.txt file for details.
 However, please note that some files are subject to other licenses.
