@@ -39,19 +39,19 @@ SELECT(長押し): 初期値に設定をリセット
 
 ## Dependencies
 
-* **arduino-pico (LGPL-2.1)**
+**arduino-pico (LGPL-2.1)**
 * earlephilhower
-* [https://github.com/earlephilhower/arduino-pico]
+* [https://github.com/earlephilhower/arduino-pico]  
   
 
-* **Adafruit_TinyUSB_Arduino (MIT)**
+**Adafruit_TinyUSB_Arduino (MIT)**
 * Copyright (c) 2019 Ha Thach for Adafruit Industries 
-* [https://github.com/adafruit/Adafruit_TinyUSB_Arduino]
+* [https://github.com/adafruit/Adafruit_TinyUSB_Arduino]  
   
 
-* **Adafruit_NeoPixel (LGPL-3.0)**
+**Adafruit_NeoPixel (LGPL-3.0)**
 * adafruit
-* [https://github.com/adafruit/Adafruit_NeoPixel]
+* [https://github.com/adafruit/Adafruit_NeoPixel]  
   
 
 ## LICENSES
