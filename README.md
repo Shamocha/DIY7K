@@ -42,28 +42,30 @@ SELECT(長押し): 初期値に設定をリセット
 * **arduino-pico (LGPL-2.1)**
 * earlephilhower
 * [https://github.com/earlephilhower/arduino-pico]
-
+  
 
 * **Adafruit_TinyUSB_Arduino (MIT)**
-* Copyright (c) 2019 Ha Thach for Adafruit Industries [https://github.com/adafruit/Adafruit_TinyUSB_Arduino]
-
+* Copyright (c) 2019 Ha Thach for Adafruit Industries 
+* [https://github.com/adafruit/Adafruit_TinyUSB_Arduino]
+  
 
 * **Adafruit_NeoPixel (LGPL-3.0)**
 * adafruit
 * [https://github.com/adafruit/Adafruit_NeoPixel]
+  
 
 ## LICENSES
-このプロジェクトはソースコードのみの提供です。ほとんどのソースコードはMITライセンスです。詳細はLICENSEをご覧ください。
+このプロジェクトはソースコードのみの提供です。ほとんどのソースコードはMITライセンスです。詳細は`LICENSE`をご覧ください。
 一部のファイルは他のライセンスが適用されています。
 
-The project is licensed under the MIT License - see the LICENSE.txt file for details.
+The project is licensed under the MIT License - see the `LICENSE` file for details.
 However, please note that some files are subject to other licenses.
 
 LGPL-3.0 適用ファイル
 `firmware/rp2040/scratchLed.cpp` は、Adafruit_NeoPixelのサンプルコードを改変して作成したため、**LGPL-3.0**が適用されます。ライセンス条文は `LICENSE-LGPL-3.0.txt` を参照してください。
 
-The file firmware/rp2040/scratchLed.cpp is licensed under LGPL-3.0 as it is derived from modified sample code from Adafruit_NeoPixel. Please see LICENSE-LGPL-3.0.txt for the license text.
+The file `firmware/rp2040/scratchLed.cpp` is licensed under LGPL-3.0 as it is derived from modified sample code from Adafruit_NeoPixel. Please see `LICENSE-LGPL-3.0.txt` for the license text.
 
-このプロジェクトは、サードパーティのコードやライブラリを参照しています。それらのライセンスについては、NOTICE.txtをご覧ください。
+このプロジェクトは、サードパーティのコードやライブラリを参照しています。それらのライセンスについては、`NOTICE.txt`をご覧ください。
 
-This project uses third-party libraries. Please see the NOTICE.txt file for their respective licenses.
+This project uses third-party libraries. Please see the `NOTICE.txt` file for their respective licenses.

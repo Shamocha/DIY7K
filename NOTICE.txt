@@ -59,6 +59,14 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------------------------------------------------
 
+Adafruit_NeoPixel - adafruit
+
+This component is licensed under the LGPL-3.0 License.
+
+Please see LICENSE-LGPL-3.0.txt for the license text.
+
+--------------------------------------------------------------------------------------------------------------------------
+
 arduino-pico - earlephilhower
 
 This component is licensed under the LGPL-2.1 License.
